@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verification Result - Enhanced Authentication</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Verification Result</h1>
+        <div class="result-message {{ 'success' if request.args.get('status') == 'success' else 'failure' }}">
+            <p>{{ message }}</p>
+        </div>
+        <a href="{{ url_for('home') }}" class="btn btn-secondary">Return to Home</a>
+    </div>
+</body>
+</html>

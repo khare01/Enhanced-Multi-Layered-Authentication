@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Registration Result - Enhanced Authentication</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Registration Result</h1>
+        <div class="result-message {{ 'success' if success else 'failure' }}">
+            {% if success %}
+                <p>Registration Successful</p>
+                <p>Embeddings Captured: {{ embeddings_captured }}</p>
+                {% if vc_path %}
+                    <p>VC Share Generated: <a href="{{ url_for('static', filename=vc_path) }}" download class="btn btn-success">Download VC Share</a></p>
+                {% endif %}
+            {% else %}
+                <p>Registration Failed</p>
+                {% if reason %}
+                    <p>Reason: {{ reason }}</p>
+                {% endif %}
+                <p>Embeddings Captured: {{ embeddings_captured }}</p>
+            {% endif %}
+        </div>
+        <a href="{{ url_for('home') }}" class="btn btn-secondary">Back to Home</a>
+    </div>
+</body>
+</html>

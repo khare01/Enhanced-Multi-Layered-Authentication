@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register - Enhanced Authentication</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script>
+        function startPolling() {
+            const interval = setInterval(() => {
+                fetch('/check_capture_complete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: "{{ session.temp_user_id }}" })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success' || data.status === 'error') {
+                        clearInterval(interval);
+                        window.location.href = data.redirect;
+                    }
+                });
+            }, 1000);
+        }
+
+        document.addEventListener('submit', function(event) {
+            if (event.target.id === 'start-capture-form') {
+                event.preventDefault();
+                fetch('/register', {
+                    method: 'POST',
+                    body: new FormData(event.target)
+                })
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                        setTimeout(startPolling, 500);
+                    }
+                });
+            }
+        });
+
+        window.onload = function() {
+            if ("{{ session.register_state }}" === 'capturing') {
+                startPolling();
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>User Registration</h1>
+        <p class="subtitle">Set up your secure profile</p>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% if 'temp_user_id' in session %}
+            {% if session.register_state != 'complete' %}
+                <div class="video-container">
+                    <img src="{{ url_for('register_video_feed') }}" alt="Video Feed" class="video-feed">
+                </div>
+                {% if session.register_state == 'waiting' %}
+                    <form method="post" id="start-capture-form" class="form">
+                        <input type="hidden" name="action" value="start_capture">
+                        <input type="submit" value="Start Biometric Capture" class="btn btn-primary">
+                    </form>
+                {% endif %}
+            {% endif %}
+        {% else %}
+            <form method="post" id="register-form" class="form">
+                <input type="text" name="user_id" placeholder="User ID" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <input type="email" name="email" placeholder="Email" required>
+                <input type="submit" value="Register" class="btn btn-primary">
+            </form>
+        {% endif %}
+        <a href="{{ url_for('home') }}" class="back-link">Back to Home</a>
+    </div>
+</body>
+</html>

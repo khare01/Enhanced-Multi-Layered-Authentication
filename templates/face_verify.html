@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Face Verification - Enhanced Authentication</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body data-start-verification="{{ session.get('start_verification', False) | lower }}">
+    <div class="container">
+        <h1>Biometric Verification</h1>
+        <p class="subtitle">Align your face and start the verification process</p>
+        <div class="video-container">
+            {% if session.get('start_verification', False) %}
+                <img src="{{ url_for('video_feed') }}" id="video" class="video-feed">
+            {% else %}
+                <img src="{{ url_for('preview_feed') }}" id="video" class="video-feed">
+            {% endif %}
+        </div>
+        <form method="post" id="start-form" class="form">
+            <input type="hidden" name="action" value="start">
+            <input type="submit" value="Start Verification" id="start-btn" class="btn btn-primary">
+        </form>
+        <a href="{{ url_for('verify') }}" class="back-link">Back to Sign In</a>
+    </div>
+    <script>
+        document.getElementById('start-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            fetch('/face_verify', {
+                method: 'POST',
+                body: new FormData(this)
+            }).then(() => {
+                document.getElementById('video').src = "{{ url_for('video_feed') }}";
+                startPolling();
+            });
+        });
+
+        function startPolling() {
+            const interval = setInterval(() => {
+                fetch('/check_verification_status')
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("Polling response:", data);
+                        if (data.status === 'success' || data.status === 'failed') {
+                            clearInterval(interval);
+                            window.location.href = data.redirect;
+                        }
+                    })
+                    .catch(error => console.error('Polling error:', error));
+            }, 1000);
+        }
+
+        const startVerification = document.body.dataset.startVerification === 'true';
+        if (startVerification) {
+            window.onload = function() {
+                startPolling();
+            };
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OTP Verification - Enhanced Authentication</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>OTP Verification</h1>
+        <p class="subtitle">Enter the OTP to regenerate your VC share</p>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% if not vc_generated %}
+            <form method="post" class="form">
+                <input type="text" name="otp" placeholder="Enter OTP" required>
+                <input type="submit" value="Submit OTP" class="btn btn-primary">
+            </form>
+            <form method="post" action="{{ url_for('resend_otp') }}" class="form">
+                <input type="submit" value="Resend OTP" class="btn btn-warning">
+            </form>
+        {% else %}
+            <p class="success-text">New VC Share Generated Successfully</p>
+            <a href="{{ url_for('static', filename=vc_path.split('static/')[1]) }}" download="{{ session.user_id }}_vc_share.png" class="btn btn-success">Download VC Share</a>
+            <a href="{{ url_for('verify') }}" class="back-link">Back to Sign In</a>
+        {% endif %}
+    </div>
+</body>
+</html>
